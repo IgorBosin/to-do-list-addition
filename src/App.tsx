@@ -1,213 +1,184 @@
 import React, {useState} from 'react';
 import './App.css';
-import axios from "axios";
-import {Button} from "./Button";
-import Input from "./Input";
+import {Todolist} from './Todolist';
+import {v1} from 'uuid';
 
-// Hi guys! Let`s reinforce our session:
 
-// 1. Install AXIOS -it`s a library for HTTP requests. We  use it instead method FETCH.
-// https://axios-http.com/ru/docs/intro
-// yarn add axios
-
-// axios.get('https://jsonplaceholder.typicode.com/todos')
-//     .then((res) => {
-//         setTodos(res.data)
-//     })
-
-//2. Let`s relocate our method map, and wrap it in a new variable:
-// const mapTodos=todos.map(el => {...
+// Hi guys!
+//1.Let`s wrap up our bunch  of filters in a function.
+//How can we do this? We can wrap all our goodies into a new function:
+//     const filteredTasks=()=>{
+//          let tasksForTodolist = tasks;
 //
-// return (
-//     <div className="App">
-//         <button onClick={onClickHandler}>CLEAN POSTS</button>
-//         <ul>
-//             {mapTodos}
-//         </ul>
-//     </div>
-// );
+//          if (filter === "active") {
+//          return   tasksForTodolist = tasks.filter(t => !t.isDone);
+//          }
+//          if (filter === "completed") {
+//            return  tasksForTodolist = tasks.filter(t => t.isDone);
+//          }
+//          return tasksForTodolist
+//     }
 
-// 3. Create new button to redisplay  our data
-
-// 4. We are having a problem. The code is duplicated (axios.get...). Let`s create a new function and use it where we need.
-//Good luck!
+//2.Let`s replace our if`s with  switch.
 
 
-type PropsType =
-    {
-        userId: number,
-        id: number,
-        title: string,
-        completed: boolean
-    }
+export type FilterValuesType = "all" | "active" | "completed";
 
 function App() {
-    const [todos, setTodos] = useState<Array<PropsType>>([])
 
-    // useEffect(()=>{
-    //     fetch('https://jsonplaceholder.typicode.com/todos')
-    //         .then(response => response.json())
-    //         .then(json => setTodos(json))
-    // },[])
+    let [tasks, setTasks] = useState([
+        {id: v1(), title: "HTML&CSS", isDone: true},
+        {id: v1(), title: "JS", isDone: true},
+        {id: v1(), title: "ReactJS", isDone: false},
+        {id: v1(), title: "Rest API", isDone: false},
+        {id: v1(), title: "GraphQL", isDone: false},
+    ]);
 
-    // useEffect(() => {
-    //     axios.get('https://jsonplaceholder.typicode.com/todos')
-    //         .then((res) => {
-    //             setTodos(res.data)
-    //         })
-    // }, [])
-
-    const onClickCleanDataHandler = () => {
-        setTodos([])
+    function removeTask(id: string) {
+        let filteredTasks = tasks.filter(t => t.id != id);
+        setTasks(filteredTasks);
     }
 
-    const onClickShowDataHandler = () => {
-        axios.get('https://jsonplaceholder.typicode.com/todos')
-            .then((res) => {
-                setTodos(res.data)
-            })
+    function addTask(title: string) {
+        let task = {id: v1(), title: title, isDone: false};
+        let newTasks = [task, ...tasks];
+        setTasks(newTasks);
     }
 
-    const mapTodos = todos.map(el => {
-        return (
-            <li key={el.userId}>
-                <span>{el.id} - </span>
-                <span>{el.title}</span>
-                <span>{el.completed}</span>
-            </li>
-        )
-    })
+    let [filter, setFilter] = useState<FilterValuesType>("all");
 
-    let [title, setTitle] = useState('')
-
-    const addUser = (title: string) => {
-        const newUser = {
-            userId: todos.length + 1,
-            id: todos.length + 1,
-            title: title,
-            completed: true
+    const filteredTasks = () => {
+        let tasksForTodolist = tasks
+        switch (filter) {
+            case "completed":
+                return tasksForTodolist = tasks.filter(t => t.isDone);
+            case "active":
+                return tasksForTodolist = tasks.filter(t => !t.isDone);
+            default:
+                return tasksForTodolist
         }
-        setTodos([newUser, ...todos])
     }
 
-    const onClickAddUserHandler = () => {
-        addUser(title)
+    // const filteredTasks = () => {
+    //     let tasksForTodolist = tasks;
+    //
+    //     if (filter === "active") {
+    //         return tasksForTodolist = tasks.filter(t => !t.isDone);
+    //     }
+    //     if (filter === "completed") {
+    //         return tasksForTodolist = tasks.filter(t => t.isDone);
+    //     }
+    //     return tasksForTodolist
+    // }
+
+    let tasksForTodolist = filteredTasks()
+    // let tasksForTodolist = tasks;
+    //
+    // if (filter === "active") {
+    //     tasksForTodolist = tasks.filter(t => t.isDone === false);
+    // }
+    // if (filter === "completed") {
+    //     tasksForTodolist = tasks.filter(t => t.isDone === true);
+    // }
+
+    function changeFilter(value: FilterValuesType) {
+        setFilter(value);
     }
 
 
     return (
         <div className="App">
-            <Button name='Data delete' callback={onClickCleanDataHandler}/>
-            <Button name='Data show' callback={onClickShowDataHandler}/>
-            <Button name='Add user' callback={onClickAddUserHandler}/>
-            <Input title={title} setTitle={setTitle}/>
-            <ul>
-                {mapTodos}
-            </ul>
+            <Todolist title="What to learn"
+                      tasks={tasksForTodolist}
+                      removeTask={removeTask}
+                      changeFilter={changeFilter}
+                      addTask={addTask}/>
         </div>
     );
-
-
-    // return (
-    //     <div className="App">
-    //         <button onClick={onClickHandler}>CLEAN POSTS</button>
-    //         <ul>
-    //             {todos.map(el => {
-    //                 return (
-    //                     <li>
-    //                         <span>{el.id} - </span>
-    //                         <span>{el.title}</span>
-    //                         <span>{el.completed}</span>
-    //                     </li>
-    //                 )
-    //             })}
-    //
-    //         </ul>
-    //     </div>
-    // );
 }
 
 export default App;
 
 
-//----------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------
 
-// import React, {useEffect, useState} from 'react';
+// import React, {useState} from 'react';
 // import './App.css';
-// import axios from "axios";
+// import {Todolist} from './Todolist';
+// import {v1} from 'uuid';
 //
-//
-// type PropsType =
-//     {
-//         userId: number,
-//         id: number,
-//         title: string,
-//         completed: boolean
-//     }
+// export type FilterValuesType = "all" | "active" | "completed";
 //
 // function App() {
-//     const [todos, setTodos] = useState<Array<PropsType>>([])
 //
-//     const axiosRequest=()=>{
-//         axios.get('https://jsonplaceholder.typicode.com/todos')
-//             .then((res) => {
-//                 setTodos(res.data)
-//             })
+//     let [tasks, setTasks] = useState([
+//         {id: v1(), title: "HTML&CSS", isDone: true},
+//         {id: v1(), title: "JS", isDone: true},
+//         {id: v1(), title: "ReactJS", isDone: false},
+//         {id: v1(), title: "Rest API", isDone: false},
+//         {id: v1(), title: "GraphQL", isDone: false},
+//     ]);
+//     let [filter, setFilter] = useState<FilterValuesType>("all");
+//
+//
+//     function removeTask(id: string) {
+//         let filteredTasks = tasks.filter(t => t.id != id);
+//         setTasks(filteredTasks);
 //     }
 //
-//     useEffect(() => {
-//         // fetch('https://jsonplaceholder.typicode.com/todos')
-//         //     .then(response => response.json())
-//         //     .then(json => setTodos(json))
-//
-//         // axios.get('https://jsonplaceholder.typicode.com/todos')
-//         //     .then((res) => {
-//         //         setTodos(res.data)
-//         //     })
-//
-//         axiosRequest()
-//     }, [])
-//
-//     const mapTodos=todos.map(el=>{
-//         return (
-//             <li>
-//                 <span>{el.id} - </span>
-//                 <span>{el.title}</span>
-//                 <span>{el.completed}</span>
-//             </li>
-//         )
-//     })
-//
-//     const onClickHandler = () => {
-//         setTodos([])
+//     function addTask(title: string) {
+//         let task = {id: v1(), title: title, isDone: false};
+//         let newTasks = [task, ...tasks];
+//         setTasks(newTasks);
 //     }
 //
-//     const onClickHandlerForRedisplay=()=>{
-//         // axios.get('https://jsonplaceholder.typicode.com/todos')
-//         //     .then((res) => {
-//         //         setTodos(res.data)
-//         //     })
+//     function changeStatus(taskId: string, isDone: boolean) {
+//         let task = tasks.find(t => t.id === taskId);
+//         if (task) {
+//             task.isDone = isDone;
+//         }
 //
-//         axiosRequest()
+//         setTasks([...tasks]);
 //     }
+//
+//
+//     const filteredTasks=()=>{
+//         // let tasksForTodolist = tasks;
+//         //
+//         // if (filter === "active") {
+//         //  return   tasksForTodolist = tasks.filter(t => !t.isDone);
+//         // }
+//         // if (filter === "completed") {
+//         //   return  tasksForTodolist = tasks.filter(t => t.isDone);
+//         // }
+//         // return tasksForTodolist
+//
+//         let tasksForTodolist = tasks;
+//         switch (filter) {
+//             case 'active': {
+//                 return   tasksForTodolist = tasks.filter(t => !t.isDone);
+//             }
+//             case 'completed': {
+//                 return  tasksForTodolist = tasks.filter(t => t.isDone);
+//             }
+//             default:return tasksForTodolist
+//         }
+//     }
+//
+//
+//     function changeFilter(value: FilterValuesType) {
+//         setFilter(value);
+//     }
+//
 //
 //     return (
 //         <div className="App">
-//             <button onClick={onClickHandler}>CLEAN POSTS</button>
-//             <button onClick={onClickHandlerForRedisplay}>REDISPLAY</button>
-//             <ul>
-//                 {/*{todos.map(el => {*/}
-//                 {/*    return (*/}
-//                 {/*        <li>*/}
-//                 {/*            <span>{el.id} - </span>*/}
-//                 {/*            <span>{el.title}</span>*/}
-//                 {/*            <span>{el.completed}</span>*/}
-//                 {/*        </li>*/}
-//                 {/*    )*/}
-//                 {/*})}*/}
-//
-//                 {mapTodos}
-//             </ul>
+//             <Todolist title="What to learn"
+//                       tasks={filteredTasks()}
+//                       removeTask={removeTask}
+//                       changeFilter={changeFilter}
+//                       addTask={addTask}
+//                       />
 //         </div>
 //     );
 // }
